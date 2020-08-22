@@ -148,3 +148,7 @@ improvements.  Feel free to issue a Push if you have a new feature of fix.
 It has only been tested with Insteon Dimmers/Switches on Windows 10, but
 programs might help you get around this limitation if your device doesn't work.
 
+## Special Thanks
+
+This repo was started with help from [Mitch McKean's McControl project](https://github.com/MitchMcKean/mccontrol).
+
