@@ -1,0 +1,24 @@
+{
+  "Description": "Simple Tool to send ON/OFF commands to an API and keep checking the state.",
+  "Name": "Universal Devices Control",
+  "com.mazecreator.udcontrol.action": {
+    "Name": "Node Control",
+    "Tooltip": "Send ON/OFF commands to an API and check the state"
+  },
+    "com.mazecreator.udpcontrol.action": {
+    "Name": "Program Control",
+    "Tooltip": "Send commands to programs"
+  },
+  "com.mazecreator.udcontrol-nodes.action": {
+    "Name": "Display Nodes",
+    "Tooltip": "Send ON/OFF commands to an API and check the state"
+  },
+  "com.mazecreator.udcontrol-programs.action": {
+    "Name": "Display Programs",
+    "Tooltip": "Send ON/OFF commands to an API and check the state"
+  },
+  "com.mazecreator.udcontrol-status.action": {
+    "Name": "Display Node Status",
+    "Tooltip": "Send ON/OFF commands to an API and check the state"
+  }
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name=viewport
+    content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+  <title>com.mazecreator.udcontrol PI</title>
+  <link rel="stylesheet" href="sdpi.css">
+</head>
+
+<body>
+
+  <div class="sdpi-wrapper">
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">RestAPI-link</div>
+      <input class="sdpi-item-value" id="apiLink" required value="http://192.168.0.90/rest/"
+        placeholder="http://192.168.0.90/rest/"
+        onchange="sendValueToPlugin(event.target.value, 'apiLink')" />
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">NODE Name</div>
+      <input class="sdpi-item-value" id="itemName" required value="28 82 2D 1" placeholder="28 82 2D 1"
+        onchange="sendValueToPlugin(event.target.value, 'itemName')" />
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Toggle Only?</div>
+      <input class="sdpi-item-value" id="toggle" value="0" placeholder="0"
+        onchange="sendValueToPlugin(event.target.value, 'toggle')" />
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">User Name</div>
+      <input class="sdpi-item-value" id="username" required value="admin" placeholder="admin"
+        onchange="sendValueToPlugin(event.target.value, 'username')" />
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Password</div>
+      <input class="sdpi-item-value" type="password" id="password" required value="admin" placeholder="admin"
+        onchange="sendValueToPlugin(event.target.value, 'password')" />
+    </div>    
+  </div>
+      <script defer src="index_pi.js"></script>
+
+</body>
+
+</html>

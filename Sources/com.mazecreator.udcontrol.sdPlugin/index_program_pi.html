@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name=viewport
+    content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+  <title>com.mazecreator.udcontrol PI</title>
+  <link rel="stylesheet" href="sdpi.css">
+</head>
+
+<body>
+
+  <div class="sdpi-wrapper">
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">RestAPI-link</div>
+      <input class="sdpi-item-value" id="apiLink" required value="http://192.168.0.90/rest/"
+        placeholder="http://192.168.0.90/rest/"
+        onchange="sendValueToPlugin(event.target.value, 'apiLink')" />
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Program ID</div>
+      <input class="sdpi-item-value" id="itemName" required value="" placeholder="0005"
+        onchange="sendValueToPlugin(event.target.value, 'itemName')" />
+    </div>
+
+    <div class="sdpi-item" id="select_single">
+      <div class="sdpi-item-label">Push Command</div>
+      <select class="sdpi-item-value select" id="command"  onchange="sendValueToPlugin(event.target.value, 'command')" />
+         <option value="run">Run</option>
+         <option value="runThen">Run Then</option>
+         <option value="runElse">Run Else</option>
+         <option value="stop">Stop</option>
+         <option value="enable">Enable</option>
+         <option value="disable">Disable</option>         
+      </select>
+    </div>
+
+    <div class="sdpi-item" id="select_single">
+      <div class="sdpi-item-label">Long Push Command</div>
+      <select class="sdpi-item-value select" id="lcommand"  onchange="sendValueToPlugin(event.target.value, 'lcommand')" />
+        <option value="run">Run</option>
+        <option value="runThen">Run Then</option>
+        <option value="runElse">Run Else</option>
+        <option value="stop">Stop</option>
+        <option value="enable">Enable</option>
+        <option value="disable">Disable</option>
+      </select>
+    </div>
+
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">User Name</div>
+      <input class="sdpi-item-value" id="username" required value="admin" placeholder="admin"
+        onchange="sendValueToPlugin(event.target.value, 'username')" />
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Password</div>
+      <input class="sdpi-item-value" type="password" id="password" required value="admin" placeholder="admin"
+        onchange="sendValueToPlugin(event.target.value, 'password')" />
+    </div>    
+  </div>
+      <script defer src="index_program_pi.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>com.mazecreator.udncontrol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="sdpi.css" />
+    <script src="common.js"></script>
+  </head>
+
+  <body>
+    <script>
+
+      function nextState( str, val, toggle = false) {
+        var nextval = 0;
+        var relay = str.startsWith("Relay");
+        var state = Math.floor((parseInt(val)+32) / 64);
+
+        nextval = state + 1;
+        if (relay || toggle)
+          if ((nextval>0) && (nextval<4))
+            nextval = 4;
+        if (nextval>4)
+          nextval = 0;
+
+        return nextval;
+      }
+
+      function wordwrap( str, width, brk, cut ) {
+      
+      brk = brk || 'n';
+      width = width || 75;
+      cut = cut || false;
+
+      if (!str) { return str; }
+
+      var regex = '.{1,' +width+ '}(\s|$)' + (cut ? '|.{' +width+ '}|.+$' : '|\S+?(\s|$)');
+
+      return str.match( RegExp(regex, 'g') ).join( brk );
+
+      }
+
+
+      function parseXml(xml) {
+        var dom = null;
+        if (window.DOMParser) {
+            try { 
+              dom = (new DOMParser()).parseFromString(xml, "text/xml"); 
+            } 
+            catch (e) { dom = null; }
+        }
+        else if (window.ActiveXObject) {
+            try {
+              dom = new ActiveXObject('Microsoft.XMLDOM');
+              dom.async = false;
+              if (!dom.loadXML(xml)) // parse error ..
+                  window.alert(dom.parseError.reason + dom.parseError.srcText);
+            } 
+            catch (e) { dom = null; }
+        }
+        else
+            alert("oops");
+        return dom;
+      }
+      // Changes XML to JSON
+      function xmlToJson(xml) {
+        
+        // Create the return object
+        var obj = {};
+
+        if (xml.nodeType == 1) { // element
+          // do attributes
+          if (xml.attributes.length > 0) {
+          obj["@attributes"] = {};
+            for (var j = 0; j < xml.attributes.length; j++) {
+              var attribute = xml.attributes.item(j);
+              obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+            }
+          }
+        } else if (xml.nodeType == 3) { // text
+          obj = xml.nodeValue;
+        }
+
+        // do children
+        if (xml.hasChildNodes()) {
+          for(var i = 0; i < xml.childNodes.length; i++) {
+            var item = xml.childNodes.item(i);
+            var nodeName = item.nodeName;
+            if (typeof(obj[nodeName]) == "undefined") {
+              obj[nodeName] = xmlToJson(item);
+            } else {
+              if (typeof(obj[nodeName].push) == "undefined") {
+                var old = obj[nodeName];
+                obj[nodeName] = [];
+                obj[nodeName].push(old);
+              }
+              obj[nodeName].push(xmlToJson(item));
+            }
+          }
+        }
+        return obj;
+      };
+
+      var websocket = null;
+      var pluginUUID = null;
+      
+      var node = "nodes/";
+      var program = "programs/";
+      var cmd  = "/cmd/DON/";
+
+      var DestinationEnum = Object.freeze({ HARDWARE_AND_SOFTWARE: 0, HARDWARE_ONLY: 1, SOFTWARE_ONLY: 2 });
+      var settingsCache = {};
+      var getStatusList = {};
+      var longPushTimer = {};
+      var longPushStatus = {};
+      let initConfig = {
+        apiLink: "",
+        itemName: "",
+        toggle: 0,
+        username: "admin",
+        password: "admin",
+      };
+      var apiCallItv = {};
+      var udControlActions = {
+        type: "com.elgato.counter.action",
+
+        onKeyDown: function (context, settings, coordinates, userDesiredState) {
+        },
+
+        onKeyUp: function (context, settings, coordinates, userDesiredState) {
+          var openHabItem = settings.apiLink + node + 
+                settings.itemName + cmd + settings.command;
+
+          var keyDisplayValue = "";
+          var csX = settings;
+          
+          let headers = new Headers();
+          headers.append('Authorization', 'Basic ' + btoa(settings.username + ":" + settings.password));
+
+      //    this.SendToLog(context,"URL: "+openHabItem);
+
+          fetch(openHabItem, {
+            method: "GET",
+            headers: headers,
+          })
+          .then((response) => {
+        //    this.SendToLog(context,"Response: "+response.statusText);
+            return response.text();
+              })
+            .then(function (data) {
+              //xmlToJson(parseXml(response.text()));
+          //    this.SendToLog(context,"UPKEYSettings: "+JSON.stringify(settings));
+
+              var cs = Math.floor((parseInt(csX.command) +32) / 64);
+              var ns = nextState(csX.id,csX.command,csX.toggle!="0");
+              
+          //    this.SendToLog(context,"csX.id: "+csX.id);
+
+              keyDisplayValue = "ON "+ cs.toString();
+              csX.command = (ns*64 - (ns == 4?1:0) ).toString();
+
+              this.SetState(context, cs);
+            }.bind(this))
+            .then(function () {
+              this.SetTitle(context, keyDisplayValue);
+              this.SetSettings(context, csX);
+            }.bind(this))
+            .catch(function (err)  {
+                this.SendToLog(context,err);
+                this.SetTitle(context, "ERR:"+err);
+            }.bind(this)) ;           
+        },
+
+        onLongKeyUp: function (context, settings, coordinates, userDesiredState) {
+          var openHabItem = settings.apiLink + node + 
+                settings.itemName + cmd + "0";
+
+          var keyDisplayValue = "";
+          var csX = settings;
+          
+          let headers = new Headers();
+          headers.append('Authorization', 'Basic ' + btoa(settings.username + ":" + settings.password));
+
+      //    this.SendToLog(context,"URL: "+openHabItem);
+
+          fetch(openHabItem, {
+            method: "GET",
+            headers: headers,
+          })
+          .then((response) => {
+        //    this.SendToLog(context,"Response: "+response.statusText);
+            return response.text();
+              })
+            .then(function (data) {
+              //xmlToJson(parseXml(response.text()));
+          //    this.SendToLog(context,"UPKEYSettings: "+JSON.stringify(settings));
+
+              var cs = Math.floor((parseInt(csX.command) +32) / 64);
+              var ns = nextState(csX.id,csX.command,csX.toggle!="0");
+              
+          //    this.SendToLog(context,"csX.id: "+csX.id);
+
+              keyDisplayValue = "ON "+ cs.toString();
+              csX.command = (ns*64 - (ns == 4?1:0) ).toString();
+
+              this.SetState(context, cs);
+            }.bind(this))
+            .then(function () {
+              this.SetTitle(context, keyDisplayValue);
+              this.SetSettings(context, csX);
+            }.bind(this))
+            .catch(function (err)  {
+                this.SendToLog(context,err);
+                this.SetTitle(context, "ERR:"+err);
+            }.bind(this)) ;           
+        },
+
+        onProgKeyUp: function (context, settings, coordinates, userDesiredState) {
+          var openHabItem = settings.apiLink + program + 
+                settings.itemName + "/"+settings.command ;
+
+          var keyDisplayValue = "";
+          var csX = settings;
+          
+          let headers = new Headers();
+          headers.append('Authorization', 'Basic ' + btoa(settings.username + ":" + settings.password));
+
+      //    this.SendToLog(context,"URL: "+openHabItem);
+
+          fetch(openHabItem, {
+            method: "GET",
+            headers: headers,
+          })
+          .then((response) => {
+        //    this.SendToLog(context,"Response: "+response.statusText);
+            return response.text();
+              })
+            .then(function (data) {
+              //xmlToJson(parseXml(response.text()));
+          //    this.SendToLog(context,"UPKEYSettings: "+JSON.stringify(settings));
+
+              var cs = Math.floor((parseInt(csX.command) +32) / 64);
+              var ns = nextState(csX.id,csX.command,csX.toggle!="0");
+              
+          //    this.SendToLog(context,"csX.id: "+csX.id);
+
+              keyDisplayValue = "ON "+ cs.toString();
+              csX.command = (ns*64 - (ns == 4?1:0) ).toString();
+
+              this.SetState(context, cs);
+            }.bind(this))
+            .then(function () {
+              this.SetTitle(context, keyDisplayValue);
+              this.SetSettings(context, csX);
+            }.bind(this))
+            .catch(function (err)  {
+                this.SendToLog(context,err);
+                this.SetTitle(context, "ERR:"+err);
+            }.bind(this)) ;           
+        },
+
+        onProgLongKeyUp: function (context, settings, coordinates, userDesiredState) {
+          var openHabItem = settings.apiLink + program + 
+                settings.itemName +  "/" +settings.lcommand ;
+
+          var keyDisplayValue = "";
+          var csX = settings;
+          
+          let headers = new Headers();
+          headers.append('Authorization', 'Basic ' + btoa(settings.username + ":" + settings.password));
+
+            console.log("LPUSH URL: "+openHabItem);
+      //    this.SendToLog(context,"URL: "+openHabItem);
+
+          fetch(openHabItem, {
+            method: "GET",
+            headers: headers,
+          })
+          .then((response) => {
+        //    this.SendToLog(context,"Response: "+response.statusText);
+            return response.text();
+              })
+            .then(function (data) {
+              //xmlToJson(parseXml(response.text()));
+          //    this.SendToLog(context,"UPKEYSettings: "+JSON.stringify(settings));
+
+              var cs = Math.floor((parseInt(csX.command) +32) / 64);
+              var ns = nextState(csX.id,csX.command,csX.toggle!="0");
+              
+          //    this.SendToLog(context,"csX.id: "+csX.id);
+
+              keyDisplayValue = "ON "+ cs.toString();
+              csX.command = (ns*64 - (ns == 4?1:0) ).toString();
+
+              this.SetState(context, cs);
+            }.bind(this))
+            .then(function () {
+              this.SetTitle(context, keyDisplayValue);
+              this.SetSettings(context, csX);
+            }.bind(this))
+            .catch(function (err)  {
+                this.SendToLog(context,err);
+                this.SetTitle(context, "ERR:"+err);
+            }.bind(this)) ;           
+        },
+
+        onWillAppear: function (context, settings, coordinates) {
+          if (!settings.apiLink || !settings.itemName) {
+            this.SetSettings(context, initConfig);
+            this.SetTitle(context, "not init");
+            settingsCache[context] = initConfig;
+          } else {
+            settingsCache[context] = settings;
+            var interval = "start";
+            this.manageApiRequest(context, settings, interval);
+          }
+        },
+
+        onSetSettings: function (context, jsonPayload) {
+          var newSettings = {};
+          var settings;
+          newSettings = settingsCache[context];
+          this.SendToLog(context,"onSetSettings newSettings IN: "+JSON.stringify(newSettings));
+          this.SendToLog(context,"onSetSettings jsonPayload IN: "+JSON.stringify(jsonPayload));
+          this.manageApiRequest(context, settings, "clear");
+          if (typeof jsonPayload === 'undefined')
+            return;
+          if (typeof jsonPayload.itemName !== 'undefined') {
+            newSettings.itemName = jsonPayload.itemName;
+            settingsCache[context].itemName = jsonPayload.itemName;  
+            this.SetSettings(context, newSettings);
+          }
+          if (typeof jsonPayload.apiLink !== 'undefined') {            
+            newSettings.apiLink = jsonPayload.apiLink;
+            settingsCache[context].apiLink = jsonPayload.apiLink;  
+            this.SetSettings(context, newSettings);
+          }
+          if (typeof jsonPayload.toggle !== 'undefined') {            
+            newSettings.toggle = jsonPayload.toggle;
+            settingsCache[context].toggle = jsonPayload.toggle;            
+            this.SetSettings(context, newSettings);
+          }       
+          if (typeof jsonPayload.username !== 'undefined') {            
+            newSettings.username = jsonPayload.username;
+            settingsCache[context].username = jsonPayload.username;     
+            this.SetSettings(context, newSettings);
+          }    
+          if (typeof jsonPayload.password !== 'undefined') {            
+            newSettings.password = jsonPayload.password;
+            settingsCache[context].password = jsonPayload.password;    
+            this.SetSettings(context, newSettings);
+          }
+          if (typeof jsonPayload.command !== 'undefined') {            
+            newSettings.command = jsonPayload.command;
+            settingsCache[context].command = jsonPayload.command;    
+            this.SetSettings(context, newSettings);
+          }
+          if (typeof jsonPayload.lcommand !== 'undefined') {            
+            newSettings.lcommand = jsonPayload.lcommand;
+            settingsCache[context].lcommand = jsonPayload.lcommand;    
+            this.SetSettings(context, newSettings);
+          }                    
+          this.SendToLog(context,"onSetSettings newSettings OUT: "+JSON.stringify(newSettings));
+        },
+
+        getStateFromAPI: function (context, settings) {
+
+          if (getStatusList[context] < 1 )
+            return;
+
+          var keyDisplayValue = "";
+          var csX = settings;
+          var openHabItem =  settings.apiLink + node + settings.itemName;
+          let headers = new Headers();
+          headers.append('Authorization', 'Basic ' + btoa(settings.username + ":" + settings.password));
+      //    this.SendToLog(context,"getState: "+openHabItem);
+          if (settings.itemName) {
+            //alert(openHabItem);
+            fetch(openHabItem, {
+                method: "GET",
+                headers: headers,
+              })
+              .then(function (response) {
+            //    this.SendToLog(context,"response: "+response);
+                return response.text();
+              }.bind(this))
+              .then(function (data) {
+                var got = xmlToJson(parseXml(data));
+                var OnLevel = got.nodeInfo.node.property["@attributes"]["value"];
+                var devicetype = got.nodeInfo.node["@attributes"]["nodeDefId"];
+          //      this.SendToLog(context,"devicetype: "+devicetype);
+          //      this.SendToLog(context,"JSON: "+JSON.stringify(got));
+
+                if (devicetype.startsWith("Relay"))
+                  csX.toggle = "1";
+                var cs = Math.floor((parseInt(OnLevel) +32) / 64);
+                var ns = nextState(devicetype,OnLevel,csX.toggle!="0");
+                keyDisplayValue = "ON "+ cs.toString();
+
+                csX.command = (ns*64 - (ns == 4?1:0) ).toString();
+                csX.itemState = keyDisplayValue;
+                csX.id = devicetype;
+                this.SetState(context, cs);   
+
+              }.bind(this))
+              .then(function () {
+                this.SetTitle(context, keyDisplayValue);
+                this.SetSettings(context, csX);
+              }.bind(this))
+              .catch(function (err)  {
+                this.SetTitle(context, "ERR:"+err);
+              }.bind(this))   ;
+          }
+        },
+
+        SetTitle: function (context, keyDisplayValue) {
+        //  console.log("WILL APPEAR SetTitle: "+keyDisplayValue);
+          var json = {
+            event: "setTitle",
+            context: context,
+            payload: {
+              title: "" + keyDisplayValue,
+              target: DestinationEnum.HARDWARE_AND_SOFTWARE,
+            },
+          };
+          websocket.send(JSON.stringify(json));
+        },
+
+        SetState: function (context, state) {
+          var json = {
+            event: "setState",
+            context: context,
+            payload: {
+              state: state,
+            },
+          };
+
+          websocket.send(JSON.stringify(json));
+        },
+
+        SendToPI: function (context,action) {
+          var settings;
+          var json = {
+            action: action,
+            event: "sendToPropertyInspector",
+            context: context,
+            payload: settingsCache[context],
+          };
+
+          websocket.send(JSON.stringify(json));
+        },
+
+        SendToLog: function (context, msg) {
+          var settings;
+          var json = {
+            "event": "logMessage",
+            "payload": {
+              "message": msg
+              }
+          };
+
+          websocket.send(JSON.stringify(json));
+        },
+
+        SetSettings: function (context, settings) {
+          var json = {
+            event: "setSettings",
+            context: context,
+            payload: settings,
+          };
+          this.manageApiRequest(context, settings, "start");
+
+          websocket.send(JSON.stringify(json));
+        },
+
+        OpenURL: function (context, URL) {
+          var settings;
+          var json = {
+              "event": "openUrl",
+              "payload": {
+                  "url": URL
+                }
+            };
+          
+          websocket.send(JSON.stringify(json));
+        },
+
+        manageApiRequest(context, settings, interval) {
+          if (interval == "start" && !apiCallItv[context]) {
+            this.getStateFromAPI(context, settings);
+            apiCallItv[context] = setInterval(() => this.getStateFromAPI(context, settings), 2 * 1000);
+          } else if (interval == "clear") {
+            clearInterval(apiCallItv[context]);
+            delete apiCallItv[context];
+          }
+        },
+      };
+
+      function connectElgatoStreamDeckSocket(inPort, inPluginUUID, inRegisterEvent, inInfo) {
+        pluginUUID = inPluginUUID;
+
+        websocket = new WebSocket("ws://127.0.0.1:" + inPort);
+
+        function registerPlugin(inPluginUUID) {
+          var json = {
+            event: inRegisterEvent,
+            uuid: inPluginUUID,
+          };
+
+          websocket.send(JSON.stringify(json));
+        }
+
+        websocket.onopen = function () {
+          registerPlugin(pluginUUID);
+        };
+
+        websocket.onmessage = function (evt) {
+          var jsonObj = JSON.parse(evt.data);
+
+          console.log(JSON.stringify(jsonObj));
+
+          var event = jsonObj["event"];
+          var action = jsonObj["action"];
+          var context = jsonObj["context"];
+          if (event == "keyDown") {
+            var jsonPayload = jsonObj["payload"];
+            var settings = jsonPayload["settings"];
+            var coordinates = jsonPayload["coordinates"];
+            var userDesiredState = jsonPayload["userDesiredState"];
+            longPushTimer[context] = setTimeout( () => {longPushStatus[context] =1;} ,1000); //1 sec
+            switch (action)
+            {
+              case "com.mazecreator.udcontrol.action":
+              case "com.mazecreator.udpcontrol.action":
+                udControlActions.onKeyDown(context, settings, coordinates, userDesiredState);
+                break;
+              case "com.mazecreator.udcontrol-nodes.action":
+                var url = "http://"+settings.username+":"+settings.password+"@"+settings.apiLink+"/rest/nodes";
+                udControlActions.OpenURL(context,url);
+                break;
+              case "com.mazecreator.udcontrol-programs.action":
+              var url = "http://"+settings.username+":"+settings.password+"@"+settings.apiLink+"/rest/programs?subfolders=true";
+                udControlActions.OpenURL(context,url);
+                break;
+              case "com.mazecreator.udcontrol-status.action":
+              var url = "http://"+settings.username+":"+settings.password+"@"+settings.apiLink+"/rest/status";
+                udControlActions.OpenURL(context,url);
+                break;
+              default:
+                break;
+            }
+         //   udControlActions.onKeyDown(context, settings, coordinates, userDesiredState);
+          } else if (event == "keyUp") {
+            var jsonPayload = jsonObj["payload"];
+            var settings = jsonPayload["settings"];
+            var coordinates = jsonPayload["coordinates"];
+            var userDesiredState = jsonPayload["userDesiredState"];
+            switch (action)
+            {
+              case "com.mazecreator.udcontrol.action":
+                clearTimeout(longPushTimer[context]);
+          //      udControlActions.SendToLog(context,JSON.stringify(jsonObj));
+                if (longPushStatus[context] ==1)
+                  udControlActions.onLongKeyUp(context, settings, coordinates, userDesiredState);
+                else
+                  udControlActions.onKeyUp(context, settings, coordinates, userDesiredState);
+                break;                
+              case "com.mazecreator.udpcontrol.action":
+                clearTimeout(longPushTimer[context]);
+          //      udControlActions.SendToLog(context,JSON.stringify(jsonObj));
+                if (longPushStatus[context] ==1)
+                  udControlActions.onProgLongKeyUp(context, settings, coordinates, userDesiredState);
+                else
+                  udControlActions.onProgKeyUp(context, settings, coordinates, userDesiredState);
+                break;
+              case "com.mazecreator.udcontrol-nodes.action":
+              case "com.mazecreator.udcontrol-programs.action":
+              case "com.mazecreator.udcontrol-status.action":
+                break;
+              default:
+                break;
+            }
+            longPushStatus[context] =0;
+          } else if (event == "willAppear") {
+            var jsonPayload = jsonObj["payload"];
+            var settings = jsonPayload["settings"];
+            var coordinates = jsonPayload["coordinates"];
+            udControlActions.onWillAppear(context, settings, coordinates);
+            getStatusList[context] = 0;
+            switch (action)
+            {
+              case "com.mazecreator.udcontrol.action":
+                getStatusList[context] = 1;
+                break;
+              case "com.mazecreator.udpcontrol.action":
+                break;
+              case "com.mazecreator.udcontrol-nodes.action":
+                udControlActions.SetTitle(context,"Display\nNodes");
+                break;
+              case "com.mazecreator.udcontrol-programs.action":
+                udControlActions.SetTitle(context,"Display\nPrograms");
+                break;
+              case "com.mazecreator.udcontrol-status.action":
+                udControlActions.SetTitle(context,"Display\nStatus");
+                break;
+              default:
+                break;
+            }
+          } else if (event == "sendToPlugin") {
+            var jsonPayload = jsonObj["payload"];
+            udControlActions.onSetSettings(context, jsonPayload);
+            console.log("sendToPlugin: "+JSON.stringify(jsonPayload));
+
+          } else if (event == "willDisappear") {
+            var interval = "clear";
+            udControlActions.manageApiRequest(context, settings, interval);
+          } else if (event == "propertyInspectorDidAppear") {
+            udControlActions.SendToPI(context,action);
+          }
+        };
+
+        websocket.onclose = function () {};
+      }
+    </script>
+  </body>
+</html>

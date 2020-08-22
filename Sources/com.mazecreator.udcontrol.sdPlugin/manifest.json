@@ -1,0 +1,123 @@
+{
+  "Actions": [
+    {
+      "Icon": "actionimage",
+      "Name": "Node Control",
+      "States": [
+        {
+          "Image": "keyiconOFF",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        },
+        {
+          "Image": "keyicon25",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        },
+        {
+          "Image": "keyicon50",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        },
+        {
+          "Image": "keyicon75",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        },
+        {
+          "Image": "keyiconON",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        }        
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Controls Nodes (Lights, Switches, Relays, Scenes, etc)",
+      "CodePath": "code2.html",
+      "PropertyInspectorPath": "index_pi.html",
+      "UUID": "com.mazecreator.udcontrol.action"
+    },
+    {
+      "Icon": "actionimage",
+      "Name": "Program Control",
+      "States": [
+        {
+          "Image": "keyiconPROG",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        }  
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Controls Nodes (Lights, Switches, Relays, Scenes, etc)",
+      "PropertyInspectorPath": "index_program_pi.html",
+      "UUID": "com.mazecreator.udpcontrol.action"
+    },
+    {
+      "Icon": "actionimageWWW",
+      "Name": "Display Nodes",
+      "States": [
+        {
+          "Image": "pluginicon",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        } 
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Display Nodes (Lights, Switches, Relays, Scenes, etc)",
+      "PropertyInspectorPath": "index_nodes_display_pi.html",
+      "UUID": "com.mazecreator.udcontrol-nodes.action"
+    },
+    {
+      "Icon": "actionimageWWW",
+      "Name": "Display Programs",
+      "States": [
+        {
+          "Image": "pluginicon",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        } 
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Display Programs (runif, runthen, runelse, etc)",
+      "PropertyInspectorPath": "index_programs_display_pi.html",
+      "UUID": "com.mazecreator.udcontrol-programs.action"
+    },
+    {
+      "Icon": "actionimageWWW",
+      "Name": "Display Node Status",
+      "States": [
+        {
+          "Image": "pluginicon",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        } 
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Display Note Status (On/off/dim/presets/etc)",
+      "PropertyInspectorPath": "index_status_display_pi.html",
+      "UUID": "com.mazecreator.udcontrol-status.action"
+    }
+  ],
+  "SDKVersion": 2,
+  "Author": "Greg Peatfield",
+  "CodePath": "code.html",
+  "Description": "Universal Devices Tool to send ON/25%/50%/75%/OFF commands to Nodes while monitoring status and Control Programs.",
+  "Name": "Universal Devices Control",
+  "Icon": "pluginicon",
+  "URL": "https://github.com/Mazecreator/udcontrol-streamdeck",
+  "Category": "Universal Devices",
+  "CategoryIcon": "pluginicon",
+  "Version": "0.9.5",
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.11"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "4.1"
+  }
+}
