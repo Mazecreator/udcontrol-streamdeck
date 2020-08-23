@@ -1,7 +1,7 @@
 
 # UDControl-Streamdeck - Stream Deck Plugin for Universal Devices
 
-This Stream Deck plugin allows the control of your Universal Devices ISY
+This [Stream Deck](https://amzn.to/3l5VrmJ) plugin allows the control of your Universal Devices ISY
 Nodes and Programs.  This plugin includes actions for controlling Nodes,
 Programs, and some Debugging tools used to help find IDs for configuring
 the Nodes & Programs.  This implements the Universal Devices ISY REST API.
@@ -152,3 +152,7 @@ programs might help you get around this limitation if your device doesn't work.
 
 This repo was started with help from [Mitch McKean's McControl project](https://github.com/MitchMcKean/mccontrol).
 
+## Get a Stream Deck
+
+You can get your [Stream Deck](https://amzn.to/3l5VrmJ).
+https://amzn.to/3l5VrmJ
