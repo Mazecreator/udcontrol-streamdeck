@@ -152,9 +152,15 @@ programs might help you get around this limitation if your device doesn't work.
 
 This repo was started with help from [Mitch McKean's McControl project](https://github.com/MitchMcKean/mccontrol).
 
-## Get a Stream Deck
+## Get a Stream Deck (Affiliate Links)
 
 You can get your [Stream Deck](https://amzn.to/3l5VrmJ).
 https://amzn.to/3l5VrmJ
 If you need an [Universal Devices ISY](https://amzn.to/3gqJ1lu).
 https://amzn.to/3gqJ1lu
+
+## Donate to Project
+
+If you would like to donate to keep this project active.  Scan the following QR Code to goto my Paypal donations page.
+
+![PayPal Donation Page](QR_donate.png)
