@@ -105,8 +105,8 @@
   "Icon": "pluginicon",
   "URL": "https://github.com/Mazecreator/udcontrol-streamdeck",
   "Category": "Universal Devices",
-  "CategoryIcon": "pluginicon",
-  "Version": "0.9.5",
+  "CategoryIcon": "plugincategory",
+  "Version": "1.0.0",
   "OS": [
     {
       "Platform": "mac",
